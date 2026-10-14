@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -199,8 +200,8 @@
                 <div class="form-group">
                     <label>Aliquota IVA (%)</label>
                     <select id="prod-iva">
-                        <option value="4" selected>4%</option>
-                        <option value="10">10%</option>
+                        <option value="4">4%</option>
+                        <option value="10" selected>10%</option>
                         <option value="22">22%</option>
                     </select>
                 </div>
@@ -261,7 +262,7 @@
             document.getElementById('prod-price').value = '';
         }
 
-        // Lettura Barcode Netum & Bilancia Italiana Macchi
+        // Lettura Barcode Netum & Bilancia Italiana Macchi (IVA Impostata al 10%)
         function handleBarcode(e) {
             if (e.key === 'Enter') {
                 const code = e.target.value.trim();
@@ -271,7 +272,7 @@
                 if (code.length === 13 && (code.startsWith('20') || code.startsWith('21'))) {
                     const priceCents = parseInt(code.substring(7, 12)); // Estrae '00100' -> 100 centesimi = 1.00 €
                     const price = priceCents / 100;
-                    addToCart("Articolo Bilancia", price, 4);
+                    addToCart("Articolo Bilancia", price, 10); // IVA corretta al 10%
                     return;
                 }
 
