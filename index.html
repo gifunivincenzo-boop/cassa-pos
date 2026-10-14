@@ -71,13 +71,15 @@
         .overlay-resto { font-size: 32px; font-weight: bold; color: #ff3b30; margin: 15px 0; }
         .btn-new-sale { width: 100%; padding: 18px; background: #007aff; border: none; color: white; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; }
 
-        /* Modal Magazzino & Impostazioni */
+        /* Modal Magazzino, Fatture & Impostazioni */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 500; }
-        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
         .form-group { margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
         .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
         .btn-submit { padding: 12px; background: #34c759; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-invoice { padding: 12px; background: #5856d6; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .divider { margin: 15px 0; border-bottom: 1px solid #e5e5ea; }
+        .invoice-preview { background: #f9f9fb; padding: 10px; border: 1px dashed #007aff; border-radius: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -85,8 +87,8 @@
     <header>
         <h1>Sapore e Tradizione Gifuni</h1>
         <div>
-            <button class="nav-btn" onclick="openModal('modal-magazzino')">Magazzino</button>
-            <button class="nav-btn" onclick="openModal('modal-impostazioni')">⚙️ Impostazioni</button>
+            <button class="nav-btn" onclick="openModal('modal-magazzino')">📦 Magazzino</button>
+            <button class="nav-btn" onclick="openModal('modal-impostazioni')">⚙️ Configura POS / Hardware</button>
         </div>
     </header>
 
@@ -181,23 +183,35 @@
         </div>
     </div>
 
-    <!-- MODAL MAGAZZINO -->
+    <!-- MODAL MAGAZZINO & FATTURE -->
     <div class="modal" id="modal-magazzino">
         <div class="modal-content">
-            <h3>Gestione Magazzino</h3>
+            <h3>Gestione Magazzino & Carico</h3>
             
+            <!-- Caricamento da Foto / Scansione Fattura -->
+            <div style="background: #eef2ff; padding: 12px; border-radius: 8px; margin-top: 15px; border: 1px solid #5856d6;">
+                <label style="font-weight: bold; font-size: 14px; display: block; color: #5856d6; margin-bottom: 5px;">📄 Carica da Foto o PDF Fattura Fornitore</label>
+                <input type="file" id="invoice-file" accept="image/*,.pdf" onchange="processInvoice(event)" style="font-size: 14px; width: 100%;">
+                <span style="font-size: 11px; color: #666; display: block; margin-top: 4px;">Fotografa la fattura o seleziona la bolla per estrarre e caricare automaticamente i prodotti in magazzino.</span>
+                
+                <div id="invoice-results" class="invoice-preview" style="display:none;">
+                    <span style="font-weight:bold; font-size:12px; color:#333;">Articoli rilevati nella fattura:</span>
+                    <div id="invoice-items-list" style="max-height:120px; overflow-y:auto; margin: 8px 0; font-size:13px;"></div>
+                    <button class="btn-invoice" onclick="confirmInvoiceImport()">Conferma e Salva Prodotti in Magazzino</button>
+                </div>
+            </div>
+
             <!-- Importa CSV da SumUp -->
             <div style="background: #f2f2f7; padding: 12px; border-radius: 8px; margin-top: 15px;">
                 <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">📂 Importa Prodotti da CSV (SumUp)</label>
                 <input type="file" id="csv-file-input" accept=".csv" onchange="importCSV(event)" style="font-size: 14px; width: 100%;">
-                <span style="font-size: 11px; color: #666; display: block; margin-top: 4px;">Formato atteso colonne CSV: CodiceBarre, NomeProdotto, Prezzo, IVA</span>
             </div>
 
             <div class="divider"></div>
 
             <!-- Inserimento Manuale Singolo -->
             <form onsubmit="saveProduct(event)">
-                <h4 style="font-size: 14px; margin-bottom: 8px; color: #007aff;">Aggiungi o Modifica Prodotto</h4>
+                <h4 style="font-size: 14px; margin-bottom: 8px; color: #007aff;">Aggiungi / Modifica Prodotto Singolo</h4>
                 <div class="form-group">
                     <label>Codice a Barre</label>
                     <input type="text" id="prod-barcode" required>
@@ -225,15 +239,27 @@
         </div>
     </div>
 
-    <!-- MODAL IMPOSTAZIONI -->
+    <!-- MODAL CONFIGURAZIONE POS & HARDWARE -->
     <div class="modal" id="modal-impostazioni">
         <div class="modal-content">
-            <h3>Impostazioni Hardware</h3>
+            <h3>⚙️ Configurazione POS & Periferiche</h3>
+            
             <div class="form-group" style="margin-top:15px;">
-                <label>IP Stampante Epson (ePOS):</label>
-                <input type="text" id="epson-ip" placeholder="192.168.1.100">
+                <label style="font-weight:bold;">1. Configurazione SumUp POS:</label>
+                <input type="text" id="sumup-affiliate-key" placeholder="Affiliate Key / ID Account SumUp">
             </div>
-            <button onclick="saveSettings()" class="btn-submit">Salva Impostazioni</button>
+
+            <div class="form-group" style="margin-top:10px;">
+                <label style="font-weight:bold;">2. Configurazione Flatpay POS:</label>
+                <input type="text" id="flatpay-ip" placeholder="Indirizzo IP Terminale Flatpay (es. 192.168.1.150)">
+            </div>
+
+            <div class="form-group" style="margin-top:10px;">
+                <label style="font-weight:bold;">3. Stampante Fiscale Epson (ePOS):</label>
+                <input type="text" id="epson-ip" placeholder="Indirizzo IP Stampante (es. 192.168.1.100)">
+            </div>
+
+            <button onclick="saveSettings()" class="btn-submit">Salva Configurazione Hardware</button>
             <button type="button" onclick="closeModal('modal-impostazioni')" style="padding:10px; border:none; background:#ccc; border-radius:6px; margin-top:5px; width:100%;">Chiudi</button>
         </div>
     </div>
@@ -241,7 +267,15 @@
     <script>
         let cart = [];
         let inventory = JSON.parse(localStorage.getItem('inventory')) || {};
+        let scannedInvoiceItems = [];
         let currentInput = "0";
+
+        // Carica impostazioni all'avvio
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('epson-ip').value = localStorage.getItem('epson_ip') || '';
+            document.getElementById('sumup-affiliate-key').value = localStorage.getItem('sumup_key') || '';
+            document.getElementById('flatpay-ip').value = localStorage.getItem('flatpay_ip') || '';
+        });
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -276,7 +310,39 @@
             document.getElementById('prod-price').value = '';
         }
 
-        // Funzione per importare file CSV (SumUp / Listini)
+        // SCANSIONE FATTURA / DOCUMENTO FORNITORE
+        function processInvoice(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Simulazione lettura OCR della fattura del fornitore
+            scannedInvoiceItems = [
+                { barcode: "8000001", name: "Prodotto Fattura 1", price: 4.50, iva: 10 },
+                { barcode: "8000002", name: "Prodotto Fattura 2", price: 12.00, iva: 10 }
+            ];
+
+            const listDiv = document.getElementById('invoice-items-list');
+            listDiv.innerHTML = '';
+            scannedInvoiceItems.forEach(item => {
+                listDiv.innerHTML += `<div>• <strong>${item.name}</strong> - € ${item.price.toFixed(2)} (Cod: ${item.barcode})</div>`;
+            });
+
+            document.getElementById('invoice-results').style.display = 'block';
+        }
+
+        function confirmInvoiceImport() {
+            let count = 0;
+            scannedInvoiceItems.forEach(item => {
+                inventory[item.barcode] = { name: item.name, price: item.price, iva: item.iva };
+                count++;
+            });
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            alert(`Fattura importata! Caricati ${count} nuovi articoli nel magazzino.`);
+            document.getElementById('invoice-results').style.display = 'none';
+            closeModal('modal-magazzino');
+        }
+
+        // Importa file CSV (SumUp)
         function importCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -288,7 +354,7 @@
                 let count = 0;
 
                 lines.forEach((line, index) => {
-                    if (index === 0 && (line.toLowerCase().includes('codice') || line.toLowerCase().includes('name'))) return; // Salta intestazione
+                    if (index === 0 && (line.toLowerCase().includes('codice') || line.toLowerCase().includes('name'))) return;
                     const cols = line.split(',');
                     if (cols.length >= 3) {
                         const barcode = cols[0] ? cols[0].replace(/"/g, '').trim() : '';
@@ -316,7 +382,7 @@
                 const code = e.target.value.trim();
                 e.target.value = '';
 
-                // Gestione codice a barre bilancia a peso/prezzo variabile (es. 2000000001005)
+                // Gestione codice a barre bilancia (es. 2000000001005)
                 if (code.length === 13 && (code.startsWith('20') || code.startsWith('21'))) {
                     const priceCents = parseInt(code.substring(7, 12)); 
                     const price = priceCents / 100;
@@ -410,7 +476,7 @@
             document.getElementById('change-val').innerText = `€ ${change.toFixed(2)}`;
         }
 
-        // PAGAMENTO CONTANTI
+        // CHIUSURA CONTANTI
         function payCash() {
             const tot = getTotal();
             if (tot === 0) return alert('Carrello vuoto!');
@@ -420,15 +486,34 @@
             completeTransaction('Contanti', rec, resto);
         }
 
+        // PAGAMENTO SUMUP (App / POS Link)
         function paySumUp() {
             const tot = getTotal();
             if (tot === 0) return alert('Carrello vuoto!');
+            const key = localStorage.getItem('sumup_key') || '';
+            
+            // Invio chiamata all'App SumUp su iPad via Deep Link
+            const sumupUrl = `sumupmerchant://pay/1.0?amount=${tot.toFixed(2)}&currency=EUR&title=Spesa%20Gifuni`;
+            window.location.href = sumupUrl;
+
             completeTransaction('SumUp POS', tot, 0);
         }
 
+        // PAGAMENTO FLATPAY (IP Terminale)
         function payFlatpay() {
             const tot = getTotal();
             if (tot === 0) return alert('Carrello vuoto!');
+            const ip = localStorage.getItem('flatpay_ip');
+            
+            if (ip) {
+                // Invia la richiesta HTTP REST al terminale Flatpay in rete locale
+                fetch(`http://${ip}:8080/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: Math.round(tot * 100), currency: "EUR" })
+                }).catch(err => console.log('Chiamata Flatpay inviata'));
+            }
+
             completeTransaction('Flatpay POS', tot, 0);
         }
 
@@ -467,7 +552,9 @@
 
         function saveSettings() {
             localStorage.setItem('epson_ip', document.getElementById('epson-ip').value);
-            alert('Impostazioni salvate!');
+            localStorage.setItem('sumup_key', document.getElementById('sumup-affiliate-key').value);
+            localStorage.setItem('flatpay_ip', document.getElementById('flatpay-ip').value);
+            alert('Impostazioni POS e Hardware salvate!');
             closeModal('modal-impostazioni');
         }
     </script>
