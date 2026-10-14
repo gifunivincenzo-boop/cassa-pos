@@ -28,22 +28,33 @@
         .total-line { display: flex; justify-content: space-between; font-size: 26px; font-weight: bold; color: #000; margin-top: 10px; }
 
         /* Layout Destra: Tastiera e Pagamenti */
-        .right-panel { flex: 1; display: flex; flex-direction: column; padding: 15px; gap: 15px; background: #f2f2f7; overflow-y: auto; }
+        .right-panel { flex: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; background: #f2f2f7; overflow-y: auto; }
         .section-title { font-size: 14px; text-transform: uppercase; color: #8e8e93; font-weight: bold; }
         
-        /* Prezzo Libero */
-        .free-price-container { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .price-input { font-size: 28px; text-align: right; padding: 10px; border: 1px solid #c7c7cc; border-radius: 8px; width: 100%; }
-        .iva-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .btn-iva { padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
+        /* Prezzo Libero & Tastierino */
+        .free-price-container { display: flex; flex-direction: column; gap: 8px; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .price-display { font-size: 28px; text-align: right; padding: 10px; border: 1px solid #c7c7cc; border-radius: 8px; width: 100%; background: #fff; font-weight: bold; color: #333; }
+        
+        .pad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .btn-pad { padding: 12px; background: #e5e5ea; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .btn-pad:active { background: #d1d1d6; }
+
+        .iva-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 5px; }
+        .btn-iva { padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
         .btn-iva-4 { background-color: #34c759; }
         .btn-iva-10 { background-color: #ff9500; }
         .btn-iva-22 { background-color: #ff3b30; }
 
+        /* Sezione Contanti & Resto */
+        .cash-section { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; }
+        .cash-row { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+        .cash-input { width: 120px; padding: 8px; font-size: 18px; text-align: right; border: 1px solid #c7c7cc; border-radius: 6px; }
+        .change-display { font-size: 22px; font-weight: bold; color: #ff3b30; text-align: right; }
+
         /* Metodi di Pagamento */
-        .payment-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .btn-pay { padding: 20px 10px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .btn-cash { background-color: #2c3e50; }
+        .payment-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-pay { padding: 16px 10px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .btn-cash { background-color: #2c3e50; grid-column: span 2; }
         .btn-sumup { background-color: #002d42; }
         .btn-flatpay { background-color: #27ae60; }
 
@@ -55,12 +66,12 @@
         .overlay-resto { font-size: 32px; font-weight: bold; color: #ff3b30; margin: 15px 0; }
         .btn-new-sale { width: 100%; padding: 18px; background: #007aff; border: none; color: white; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; }
 
-        /* Modal Magazzino */
+        /* Modal Magazzino & Impostazioni */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 500; }
         .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
         .form-group { margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
         .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .btn-submit { padding: 12px; background: #34c759; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-submit { padding: 12px; background: #34c759; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -80,7 +91,7 @@
                 <input type="text" id="barcode-input" placeholder="Scannerizza codice Netum o bilancia..." autofocus onkeypress="handleBarcode(event)">
             </div>
             <div class="cart-list" id="cart-list">
-                <!-- Articoli carrello inseriti qui -->
+                <!-- Articoli carrello -->
             </div>
             <div class="cart-summary">
                 <div class="summary-line"><span>Imponibile:</span> <span id="subtotal-val">€ 0.00</span></div>
@@ -91,9 +102,23 @@
 
         <!-- PANNELLO DESTRA: TASTIERA & PAGAMENTI -->
         <section class="right-panel">
-            <span class="section-title">Prezzo Libero</span>
+            <span class="section-title">Prezzo Libero & Tastierino</span>
             <div class="free-price-container">
-                <input type="number" id="free-price" class="price-input" placeholder="0.00" step="0.01">
+                <div id="price-screen" class="price-display">0.00</div>
+                <div class="pad-grid">
+                    <button class="btn-pad" onclick="pressPad('1')">1</button>
+                    <button class="btn-pad" onclick="pressPad('2')">2</button>
+                    <button class="btn-pad" onclick="pressPad('3')">3</button>
+                    <button class="btn-pad" onclick="pressPad('4')">4</button>
+                    <button class="btn-pad" onclick="pressPad('5')">5</button>
+                    <button class="btn-pad" onclick="pressPad('6')">6</button>
+                    <button class="btn-pad" onclick="pressPad('7')">7</button>
+                    <button class="btn-pad" onclick="pressPad('8')">8</button>
+                    <button class="btn-pad" onclick="pressPad('9')">9</button>
+                    <button class="btn-pad" onclick="pressPad('C')" style="background:#ff3b30; color:white;">C</button>
+                    <button class="btn-pad" onclick="pressPad('0')">0</button>
+                    <button class="btn-pad" onclick="pressPad('DEL')">⌫</button>
+                </div>
                 <div class="iva-buttons">
                     <button class="btn-iva btn-iva-4" onclick="addFreePrice(4)">IVA 4%</button>
                     <button class="btn-iva btn-iva-10" onclick="addFreePrice(10)">IVA 10%</button>
@@ -101,10 +126,22 @@
                 </div>
             </div>
 
+            <!-- SEZIONE CONTANTI E RESTO -->
+            <div class="cash-section">
+                <div class="cash-row">
+                    <span>Importo Ricevuto:</span>
+                    <input type="number" id="cash-received" class="cash-input" placeholder="0.00" step="0.01" oninput="calculateChange()">
+                </div>
+                <div class="cash-row">
+                    <span>Resto:</span>
+                    <span id="change-val" class="change-display">€ 0.00</span>
+                </div>
+            </div>
+
             <span class="section-title">Chiusura Conto</span>
             <div class="payment-buttons">
                 <button class="btn-pay btn-cash" onclick="payCash()">
-                    <span>💵 CONTANTI</span>
+                    <span>💵 CHIUDI CON CONTANTI</span>
                 </button>
                 <button class="btn-pay btn-sumup" onclick="paySumUp()">
                     <span>💳 SUMUP</span>
@@ -167,10 +204,6 @@
                 <label>IP Stampante Epson (ePOS):</label>
                 <input type="text" id="epson-ip" placeholder="192.168.1.100">
             </div>
-            <div class="form-group">
-                <label>Terminal ID Flatpay:</label>
-                <input type="text" id="flatpay-id" placeholder="FLAT123456">
-            </div>
             <button onclick="saveSettings()" class="btn-submit">Salva Impostazioni</button>
             <button type="button" onclick="closeModal('modal-impostazioni')" style="padding:10px; border:none; background:#ccc; border-radius:6px; margin-top:5px; width:100%;">Chiudi</button>
         </div>
@@ -179,11 +212,25 @@
     <script>
         let cart = [];
         let inventory = JSON.parse(localStorage.getItem('inventory')) || {};
+        let currentInput = "0";
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // Salvataggio Prodotto nel Magazzino Locale
+        // Gestione Tastierino Prezzo Libero
+        function pressPad(val) {
+            if (val === 'C') {
+                currentInput = "0";
+            } else if (val === 'DEL') {
+                currentInput = currentInput.length > 1 ? currentInput.slice(0, -1) : "0";
+            } else {
+                if (currentInput === "0") currentInput = val;
+                else currentInput += val;
+            }
+            let numericVal = parseInt(currentInput) / 100;
+            document.getElementById('price-screen').innerText = numericVal.toFixed(2);
+        }
+
         function saveProduct(e) {
             e.preventDefault();
             const barcode = document.getElementById('prod-barcode').value;
@@ -200,22 +247,19 @@
             document.getElementById('prod-price').value = '';
         }
 
-        // Lettura Barcode Netum & Bilancia Italiana Macchi Unica
+        // Lettura Barcode Netum & Bilancia
         function handleBarcode(e) {
             if (e.key === 'Enter') {
                 const code = e.target.value.trim();
                 e.target.value = '';
 
-                // Controllo se è un EAN da bilancia a peso/prezzo (prefisso 20 o 21 standard)
                 if (code.length === 13 && (code.startsWith('20') || code.startsWith('21'))) {
-                    // Formato standard bilancia: 20 + 5 cifre articolo + 5 cifre prezzo in centesimi + Checkdigit
                     const priceCents = parseInt(code.substring(7, 12));
                     const price = priceCents / 100;
-                    addToCart("Articolo da Bilancia", price, 4); // Di default imposta IVA alimentari (es. 4%)
+                    addToCart("Articolo da Bilancia", price, 4);
                     return;
                 }
 
-                // Cerca nel magazzino
                 if (inventory[code]) {
                     const p = inventory[code];
                     addToCart(p.name, p.price, p.iva);
@@ -225,15 +269,14 @@
             }
         }
 
-        // Aggiunta Prezzo Libero
         function addFreePrice(ivaRate) {
-            const priceInput = document.getElementById('free-price');
-            const val = parseFloat(priceInput.value);
-            if (val && val > 0) {
+            let val = parseInt(currentInput) / 100;
+            if (val > 0) {
                 addToCart(`Prezzo Libero (${ivaRate}%)`, val, ivaRate);
-                priceInput.value = '';
+                currentInput = "0";
+                document.getElementById('price-screen').innerText = "0.00";
             } else {
-                alert('Inserisci prima un importo valido.');
+                alert('Inserisci un importo valido.');
             }
         }
 
@@ -273,6 +316,7 @@
             document.getElementById('subtotal-val').innerText = `€ ${subtotal.toFixed(2)}`;
             document.getElementById('tax-val').innerText = `€ ${taxTotal.toFixed(2)}`;
             document.getElementById('total-val').innerText = `€ ${total.toFixed(2)}`;
+            calculateChange();
         }
 
         function removeItem(index) {
@@ -284,86 +328,64 @@
             return cart.reduce((acc, item) => acc + item.price, 0);
         }
 
-        // METODO 1: CONTANTI
+        function calculateChange() {
+            const tot = getTotal();
+            const receivedInput = document.getElementById('cash-received').value;
+            const rec = parseFloat(receivedInput) || 0;
+            const change = rec >= tot ? rec - tot : 0;
+            document.getElementById('change-val').innerText = `€ ${change.toFixed(2)}`;
+        }
+
+        // PAGAMENTO CONTANTI
         function payCash() {
             const tot = getTotal();
             if (tot === 0) return alert('Carrello vuoto!');
-            const input = prompt(`Totale: € ${tot.toFixed(2)}\nInserisci l'importo consegnato dal cliente:`, tot.toFixed(2));
-            if (input !== null) {
-                const rec = parseFloat(input);
-                if (rec >= tot) {
-                    const resto = rec - tot;
-                    completeTransaction('Contanti', rec, resto);
-                } else {
-                    alert('Importo insufficiente!');
-                }
-            }
+            const rec = parseFloat(document.getElementById('cash-received').value) || tot;
+            if (rec < tot) return alert('Importo in contanti insufficiente rispetto al totale!');
+            const resto = rec - tot;
+            completeTransaction('Contanti', rec, resto);
         }
 
-        // METODO 2: SUMUP (Integrazione Web / URL Scheme iPad)
         function paySumUp() {
             const tot = getTotal();
             if (tot === 0) return alert('Carrello vuoto!');
-            
-            // Richiesta verso l'App SumUp installata sull'iPad
-            const callbackUrl = encodeURIComponent(window.location.href);
-            const sumupUrl = `sumupmerchant://pay/1.0?affiliate-key=YOUR_KEY&amount=${tot.toFixed(2)}&currency=EUR&title=Conto&callback-url=${callbackUrl}`;
-            
-            // Per simulazione a schermo chiudiamo la transazione:
             completeTransaction('SumUp POS', tot, 0);
-            // In produzione: window.location.href = sumupUrl;
         }
 
-        // METODO 3: FLATPAY (Integrazione API Cloud POS)
         function payFlatpay() {
             const tot = getTotal();
             if (tot === 0) return alert('Carrello vuoto!');
-            
-            // Esempio chiamata API Cloud verso il terminale Flatpay
-            console.log(`Invio di € ${tot.toFixed(2)} al POS Flatpay...`);
-            
-            // Al termine della risposta POS OK:
             completeTransaction('Flatpay POS', tot, 0);
         }
 
-        // INVIO SCONTRINO ALLA STAMPANTE FISCALE EPSON (ePOS XML)
         function printEpsonReceipt() {
             const ip = localStorage.getItem('epson_ip');
-            if (!ip) return console.log('IP Stampante Epson non impostato.');
-
-            // Struttura XML ePOS Epson per invio scontrino telematico
+            if (!ip) return;
             let request = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">' +
                           '<s:Body><epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">';
-            
             cart.forEach(item => {
                 request += `<response addText="${item.name} €${item.price.toFixed(2)}\n"/>`;
             });
-            
-            request += `<response addCut type="FEED"/>`;
-            request += '</epos-print></s:Body></s:Envelope>';
-
+            request += `<response addCut type="FEED"/></epos-print></s:Body></s:Envelope>`;
             fetch(`http://${ip}/cgi-bin/epos/service.cgi`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/xml; charset=utf-8' },
                 body: request
-            }).catch(err => console.log('Errore connessione Epson:', err));
+            }).catch(err => console.log(err));
         }
 
-        // COMPLETAMENTO E BLOCCO SCHERMATA
         function completeTransaction(method, received, change) {
             printEpsonReceipt();
-
             document.getElementById('out-totale').innerText = `€ ${getTotal().toFixed(2)}`;
             document.getElementById('out-metodo').innerText = method;
             document.getElementById('out-ricevuto').innerText = `€ ${received.toFixed(2)}`;
             document.getElementById('out-resto').innerText = `€ ${change.toFixed(2)}`;
-
             document.getElementById('overlay-summary').style.display = 'flex';
         }
 
-        // AZZERAMENTO PER NUOVO SCONTRINO
         function resetSale() {
             cart = [];
+            document.getElementById('cash-received').value = '';
             renderCart();
             document.getElementById('overlay-summary').style.display = 'none';
             document.getElementById('barcode-input').focus();
@@ -371,7 +393,6 @@
 
         function saveSettings() {
             localStorage.setItem('epson_ip', document.getElementById('epson-ip').value);
-            localStorage.setItem('flatpay_id', document.getElementById('flatpay-id').value);
             alert('Impostazioni salvate!');
             closeModal('modal-impostazioni');
         }
