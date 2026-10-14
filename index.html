@@ -77,6 +77,7 @@
         .form-group { margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
         .form-group input, .form-group select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
         .btn-submit { padding: 12px; background: #34c759; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .divider { margin: 15px 0; border-bottom: 1px solid #e5e5ea; }
     </style>
 </head>
 <body>
@@ -184,7 +185,19 @@
     <div class="modal" id="modal-magazzino">
         <div class="modal-content">
             <h3>Gestione Magazzino</h3>
-            <form onsubmit="saveProduct(event)" style="margin-top:15px;">
+            
+            <!-- Importa CSV da SumUp -->
+            <div style="background: #f2f2f7; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">📂 Importa Prodotti da CSV (SumUp)</label>
+                <input type="file" id="csv-file-input" accept=".csv" onchange="importCSV(event)" style="font-size: 14px; width: 100%;">
+                <span style="font-size: 11px; color: #666; display: block; margin-top: 4px;">Formato atteso colonne CSV: CodiceBarre, NomeProdotto, Prezzo, IVA</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Inserimento Manuale Singolo -->
+            <form onsubmit="saveProduct(event)">
+                <h4 style="font-size: 14px; margin-bottom: 8px; color: #007aff;">Aggiungi o Modifica Prodotto</h4>
                 <div class="form-group">
                     <label>Codice a Barre</label>
                     <input type="text" id="prod-barcode" required>
@@ -205,9 +218,10 @@
                         <option value="22">22%</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-submit">Salva Prodotto</button>
-                <button type="button" onclick="closeModal('modal-magazzino')" style="padding:10px; border:none; background:#ccc; border-radius:6px; margin-top:5px; width:100%;">Chiudi</button>
+                <button type="submit" class="btn-submit">Salva Singolo Prodotto</button>
             </form>
+
+            <button type="button" onclick="closeModal('modal-magazzino')" style="padding:12px; border:none; background:#8e8e93; color:white; border-radius:6px; font-weight:bold; margin-top:15px; width:100%;">Chiudi</button>
         </div>
     </div>
 
@@ -248,21 +262,55 @@
 
         function saveProduct(e) {
             e.preventDefault();
-            const barcode = document.getElementById('prod-barcode').value;
+            const barcode = document.getElementById('prod-barcode').value.trim();
             inventory[barcode] = {
-                name: document.getElementById('prod-name').value,
+                name: document.getElementById('prod-name').value.trim(),
                 price: parseFloat(document.getElementById('prod-price').value),
                 iva: parseInt(document.getElementById('prod-iva').value)
             };
             localStorage.setItem('inventory', JSON.stringify(inventory));
-            alert('Prodotto salvato!');
+            alert('Prodotto salvato con successo nel magazzino!');
             closeModal('modal-magazzino');
             document.getElementById('prod-barcode').value = '';
             document.getElementById('prod-name').value = '';
             document.getElementById('prod-price').value = '';
         }
 
-        // Lettura Barcode Netum & Bilancia Italiana Macchi (IVA Impostata al 10%)
+        // Funzione per importare file CSV (SumUp / Listini)
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                let count = 0;
+
+                lines.forEach((line, index) => {
+                    if (index === 0 && (line.toLowerCase().includes('codice') || line.toLowerCase().includes('name'))) return; // Salta intestazione
+                    const cols = line.split(',');
+                    if (cols.length >= 3) {
+                        const barcode = cols[0] ? cols[0].replace(/"/g, '').trim() : '';
+                        const name = cols[1] ? cols[1].replace(/"/g, '').trim() : '';
+                        const price = cols[2] ? parseFloat(cols[2].replace(/"/g, '').trim()) : 0;
+                        const iva = cols[3] ? parseInt(cols[3].replace(/"/g, '').trim()) : 10;
+
+                        if (barcode && name && !isNaN(price)) {
+                            inventory[barcode] = { name, price, iva };
+                            count++;
+                        }
+                    }
+                });
+
+                localStorage.setItem('inventory', JSON.stringify(inventory));
+                alert(`Importazione completata! Caricati ${count} prodotti in magazzino.`);
+                closeModal('modal-magazzino');
+            };
+            reader.readAsText(file);
+        }
+
+        // Lettura Barcode Netum & Bilancia Italiana Macchi (IVA al 10%)
         function handleBarcode(e) {
             if (e.key === 'Enter') {
                 const code = e.target.value.trim();
@@ -270,9 +318,9 @@
 
                 // Gestione codice a barre bilancia a peso/prezzo variabile (es. 2000000001005)
                 if (code.length === 13 && (code.startsWith('20') || code.startsWith('21'))) {
-                    const priceCents = parseInt(code.substring(7, 12)); // Estrae '00100' -> 100 centesimi = 1.00 €
+                    const priceCents = parseInt(code.substring(7, 12)); 
                     const price = priceCents / 100;
-                    addToCart("Articolo Bilancia", price, 10); // IVA corretta al 10%
+                    addToCart("Articolo Bilancia", price, 10);
                     return;
                 }
 
@@ -344,7 +392,6 @@
             return cart.reduce((acc, item) => acc + item.price, 0);
         }
 
-        // Tasti rapidi banconote contanti (€5, €10, €20, €50, €100, Esatto)
         function setCashReceived(val) {
             const tot = getTotal();
             if (val === 'exact') {
